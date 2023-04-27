@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = {"https://naca-client.netlify.app/"})
+@CrossOrigin(origins = "https://naca-client.netlify.app/")
 //@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 @RestController

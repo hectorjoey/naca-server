@@ -20,7 +20,8 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
-@CrossOrigin(origins = {"http://localhost:3000"})
+//@CrossOrigin(origins = {"http://localhost:3000"}
+@CrossOrigin(origins = "https://naca-client.netlify.app/")
 @RestController
 @RequestMapping({"/api/v1/"})
 @RequiredArgsConstructor
