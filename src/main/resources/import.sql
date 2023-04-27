@@ -1,0 +1,1 @@
+INSERT INTO users(firstname, lastname, user_type, email,department, states,  password, project) VALUES('Super', 'Admin', 'Admin', 'admin@naca.org','Admin','FCT','$2y$12$ZId7KZzfUI046edppuN.Uugp8SEYT1AofMkpar1NGFRU/IRGVd0mS', 'allProjects');
