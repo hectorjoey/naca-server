@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
-@CrossOrigin(origins = { "https://asset-verify.netlify.app" })
+@CrossOrigin(origins = {"https://naca-client.netlify.app/"})
 @RestController
 @RequestMapping({ "/api/v1/" })
 @RequiredArgsConstructor
