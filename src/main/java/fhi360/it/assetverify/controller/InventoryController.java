@@ -26,7 +26,6 @@ import java.util.Map;
 @RequestMapping("/api/v1/")
 public class InventoryController {
     private final InventoryRepository inventoryRepository;
-    private final BinCardRepository binCardRepository;
     private final InventoryService inventoryService;
 
 
