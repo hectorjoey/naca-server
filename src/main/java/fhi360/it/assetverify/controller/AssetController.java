@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins = "https://naca-client.netlify.app/")
-//@CrossOrigin(origins = {"http://localhost:3000"})
+//@CrossOrigin(origins = "https://naca-client.netlify.app/")
+@CrossOrigin(origins = {"http://localhost:3000"})
 @RestController
 @RequestMapping({"/api/v1/"})
 @RequiredArgsConstructor
@@ -35,7 +35,7 @@ public class AssetController {
 
     @GetMapping({"assets"})
     public Page<Asset> getAllAssets(final Pageable pageable) {
-        return this.assetRepository.findAll(pageable);
+        return this.assetRepository.findByOrderByStatesAsc(pageable);
     }
 
     @GetMapping({"assets/{keyword}"})

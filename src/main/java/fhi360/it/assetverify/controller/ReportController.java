@@ -11,9 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "https://naca-client.netlify.app/")
+//@CrossOrigin(origins = "https://naca-client.netlify.app/")
 @RestController
 @RequestMapping("/api/v1/")
 public class ReportController {

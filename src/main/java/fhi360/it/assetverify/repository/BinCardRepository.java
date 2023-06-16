@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BinCardRepository extends JpaRepository<BinCard, Long> {
 
-    @Query("Select b from BinCard b where b.warehouseName=:keyword OR b.batchNo=:keyword OR b.dispatchedLocation =: keyword OR b.issuedTo =: keyword OR b.issuedToEmail=:keyword OR b.phone=:keyword")
+    @Query("Select b from BinCard b where b.warehouseName=:keyword OR b.batchNo=:keyword OR b.description=:keyboard OR b.dispatchedLocation =: keyword OR b.issuedTo =: keyword OR b.issuedToEmail=:keyword OR b.phone=:keyword")
     Page<BinCard> findAll(Pageable pageable, @Param("keyword") String keyword);
 
     Page<BinCard> findByOrderByIdAsc(Pageable pageable);
