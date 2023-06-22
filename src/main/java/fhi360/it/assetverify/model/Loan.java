@@ -298,14 +298,9 @@ public class Loan
         final Object this$status = this.getStatus();
         final Object other$status = other.getStatus();
         if (this$status == null) {
-            if (other$status == null) {
-                return true;
-            }
+            return other$status == null;
         }
-        else if (this$status.equals(other$status)) {
-            return true;
-        }
-        return false;
+        else return this$status.equals(other$status);
     }
     
     protected boolean canEqual(final Object other) {

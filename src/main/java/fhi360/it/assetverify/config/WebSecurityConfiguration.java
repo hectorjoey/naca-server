@@ -29,15 +29,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     public DaoAuthenticationProvider authenticationProvider() {
         final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(this.userDetailsService());
-        authProvider.setPasswordEncoder((PasswordEncoder) this.passwordEncoder());
+        authProvider.setPasswordEncoder(this.passwordEncoder());
         return authProvider;
     }
 
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication().withUser("asset")
-                .password(this.passwordEncoder().encode((CharSequence) "admin"))
+                .password(this.passwordEncoder().encode("admin"))
                 .roles("ADMIN").and().withUser("user").password
-                        (this.passwordEncoder().encode((CharSequence) "user")).roles("USER");
+                        (this.passwordEncoder().encode("user")).roles("USER");
     }
 
     protected void configure(final HttpSecurity http) throws Exception {

@@ -18,16 +18,27 @@ public class BinCard {
     private long id;
     private String date;
     private String warehouseName;
-    private String description;
+    private String itemDescription;
+    private String unit;
+    private String voucherOrRefNumber;
+    private String receivedFrom;
     private String batchNo;
-    private String manufactureDate;
-    private String expiryDate;
-    private String openingBalance;
-    private String closingStock;
-    private String quantityIssued;
-    private String phone;
     private String issuedTo;
+    private String expiryDate;
+    private String quantityReceived;
+    private String manufactureDate;
+    private String quantityIssued;
+    private String lossesAndAdjustments;
+//    private String adjustmentUp;
+//    private String adjustmentDown;
+    private String phone;
     private String issuedToEmail;
+    private String stockBalance;
+    private String closingStock;
     private String dispatchedLocation;
     private Long inventoryId;
+
+    private String mos;
+
+
 }

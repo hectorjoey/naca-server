@@ -213,14 +213,9 @@ public class Users
         final Object this$password = this.getPassword();
         final Object other$password = other.getPassword();
         if (this$password == null) {
-            if (other$password == null) {
-                return true;
-            }
+            return other$password == null;
         }
-        else if (this$password.equals(other$password)) {
-            return true;
-        }
-        return false;
+        else return this$password.equals(other$password);
     }
     
     protected boolean canEqual(final Object other) {

@@ -17,7 +17,7 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String warehouseName;
-    private String description;
+    private String itemDescription;
     private String category;
     private String batchNo;
     private String manufactureDate;
@@ -25,10 +25,18 @@ public class Inventory {
     private String unit;
     private String stockState;
     private String openingBalance;
+    private String stockBalance;
     private String quantityReceived;
+    private String quantityIssued;
     private String closingStock;
     private String stockOnHand;
     private String reportingMonth;
- //    private String states;
     private String donor;
+
+    private String mos;
+    private String shellLife;
+    private String losses;
+    private String positiveAdjustment;
+    private String negativeAdjustment;
+    private String remark;
 }

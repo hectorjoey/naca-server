@@ -209,14 +209,9 @@ public class ApiResponse<T>
         final Object this$project = this.getProject();
         final Object other$project = other.getProject();
         if (this$project == null) {
-            if (other$project == null) {
-                return true;
-            }
+            return other$project == null;
         }
-        else if (this$project.equals(other$project)) {
-            return true;
-        }
-        return false;
+        else return this$project.equals(other$project);
     }
     
     protected boolean canEqual(final Object other) {

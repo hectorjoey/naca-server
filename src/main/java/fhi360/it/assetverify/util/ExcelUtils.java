@@ -20,7 +20,7 @@ public class ExcelUtils {
         try {
             final XSSFWorkbook workbook = new XSSFWorkbook(is);
             final XSSFSheet sheet = workbook.getSheetAt(0);
-            final Iterator<Row> rows = (Iterator<Row>) sheet.iterator();
+            final Iterator<Row> rows = sheet.iterator();
             final ArrayList<Asset> lstAsset = new ArrayList<Asset>();
             int rowNumber = 1;
             while (rows.hasNext()) {
@@ -28,7 +28,7 @@ public class ExcelUtils {
                 if (rowNumber == 1) {
                     ++rowNumber;
                 } else {
-                    final Iterator<Cell> cellsInRow = (Iterator<Cell>) currentRow.iterator();
+                    final Iterator<Cell> cellsInRow = currentRow.iterator();
                     final DataFormatter formatter = new DataFormatter();
                     final Asset asset = new Asset();
                     int cellIndex = 1;
@@ -89,7 +89,7 @@ public class ExcelUtils {
         try {
             final XSSFWorkbook workbook = new XSSFWorkbook(is);
             final XSSFSheet sheet = workbook.getSheetAt(0);
-            final Iterator<Row> rows = (Iterator<Row>) sheet.iterator();
+            final Iterator<Row> rows = sheet.iterator();
             final ArrayList<Item> lstItem = new ArrayList<Item>();
             int rowNumber = 1;
             while (rows.hasNext()) {
@@ -97,7 +97,7 @@ public class ExcelUtils {
                 if (rowNumber == 1) {
                     ++rowNumber;
                 } else {
-                    final Iterator<Cell> cellsInRow = (Iterator<Cell>) currentRow.iterator();
+                    final Iterator<Cell> cellsInRow = currentRow.iterator();
                     final DataFormatter formatter = new DataFormatter();
                     final Item item = new Item();
                     int cellIndex = 1;
@@ -140,7 +140,7 @@ public class ExcelUtils {
         try {
             final XSSFWorkbook workbook = new XSSFWorkbook(is);
             final XSSFSheet sheet = workbook.getSheetAt(0);
-            final Iterator<Row> rows = (Iterator<Row>) sheet.iterator();
+            final Iterator<Row> rows = sheet.iterator();
             final ArrayList<Inventory> lstInventory = new ArrayList<Inventory>();
             int rowNumber = 1;
             while (rows.hasNext()) {
@@ -148,7 +148,7 @@ public class ExcelUtils {
                 if (rowNumber == 1) {
                     ++rowNumber;
                 } else {
-                    final Iterator<Cell> cellsInRow = (Iterator<Cell>) currentRow.iterator();
+                    final Iterator<Cell> cellsInRow = currentRow.iterator();
                     final DataFormatter formatter = new DataFormatter();
                     final Inventory inventory = new Inventory();
                     int cellIndex = 1;
@@ -158,7 +158,7 @@ public class ExcelUtils {
                         if (cellIndex == 1) { // NameOfArticle
                             inventory.setWarehouseName(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 2) { //DateOfPurchase
-                            inventory.setDescription(formatter.formatCellValue(currentCell));
+                            inventory.setItemDescription(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 3) { //DateOfPurchase
                             inventory.setCategory(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 4) { // source
@@ -172,7 +172,7 @@ public class ExcelUtils {
                         } else if (cellIndex == 8) { // ReceivedQuantity
                             inventory.setStockState(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 9) { // OpeningBalance
-                            inventory.setOpeningBalance(formatter.formatCellValue(currentCell));
+                            inventory.setStockBalance(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 10) { // QuantityReceived
                             inventory.setQuantityReceived(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 11) { // ClosingStock

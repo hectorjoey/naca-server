@@ -43,7 +43,7 @@ public class InventoryController {
     //get all inventory
     @GetMapping("inventories")
     public Page<Inventory> getAllInventories(Pageable pageable) {
-        return inventoryRepository.findByOrderByIdAsc(pageable);
+        return inventoryService.getHealthCommodities(pageable);
     }
 
     @PostMapping("inventory")
@@ -71,7 +71,7 @@ public class InventoryController {
         System.out.println("Update inventory with ID = " + id + "...");
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for this id :: " + id));
-        inventory.setOpeningBalance(inventoryDto.getOpeningBalance());
+        inventory.setStockBalance(inventoryDto.getStockBalance());
         inventory.setClosingStock(inventoryDto.getClosingStock());
         final Inventory updatedInventory = inventoryRepository.save(inventory);
         System.out.println("Updated Inventory " + updatedInventory);
@@ -84,8 +84,9 @@ public class InventoryController {
 
         Inventory inventory= inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for this id :: " + id));
-        inventory.setOpeningBalance(inventoryDto.getOpeningBalance());
+        inventory.setStockBalance(inventoryDto.getStockBalance());
         inventory.setClosingStock(inventoryDto.getClosingStock());
+//        inventory.setLossesAndAdjustments(inventoryDto.getLossesAndAdjustments());
 
         final Inventory updatedInventory = inventoryRepository.save(inventory);
         System.out.println("Updated Inventory" + updatedInventory);

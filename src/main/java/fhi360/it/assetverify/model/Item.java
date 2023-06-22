@@ -247,14 +247,9 @@ public class Item
         final Object this$authorizedBy = this.getAuthorizedBy();
         final Object other$authorizedBy = other.getAuthorizedBy();
         if (this$authorizedBy == null) {
-            if (other$authorizedBy == null) {
-                return true;
-            }
+            return other$authorizedBy == null;
         }
-        else if (this$authorizedBy.equals(other$authorizedBy)) {
-            return true;
-        }
-        return false;
+        else return this$authorizedBy.equals(other$authorizedBy);
     }
     
     protected boolean canEqual(final Object other) {

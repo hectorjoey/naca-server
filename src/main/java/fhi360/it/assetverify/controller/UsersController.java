@@ -65,7 +65,7 @@ public class UsersController {
         final ResourceNotFoundException ex;
         final Users users = this.userRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("User not found for this id :: " + id));
-        users.setPassword(this.bCryptPasswordEncoder.encode((CharSequence) userDto.getPassword()));
+        users.setPassword(this.bCryptPasswordEncoder.encode(userDto.getPassword()));
         final Users updatedUser = this.userRepository.save(users);
         log.debug("Updated User {}", updatedUser);
         return this.userRepository.save(updatedUser);
