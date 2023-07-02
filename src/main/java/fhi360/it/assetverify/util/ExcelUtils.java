@@ -172,7 +172,7 @@ public class ExcelUtils {
                         } else if (cellIndex == 8) { // ReceivedQuantity
                             inventory.setStockState(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 9) { // OpeningBalance
-                            inventory.setStockBalance(formatter.formatCellValue(currentCell));
+                            inventory.setOpeningBalance(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 10) { // QuantityReceived
                             inventory.setQuantityReceived(formatter.formatCellValue(currentCell));
                         } else if (cellIndex == 11) { // ClosingStock

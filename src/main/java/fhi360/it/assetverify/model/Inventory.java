@@ -18,6 +18,7 @@ public class Inventory {
     private long id;
     private String warehouseName;
     private String itemDescription;
+    private String dateReceived;
     private String category;
     private String batchNo;
     private String manufactureDate;
@@ -33,10 +34,16 @@ public class Inventory {
     private String reportingMonth;
     private String donor;
 
-    private String mos;
+
     private String shellLife;
     private String losses;
     private String positiveAdjustment;
     private String negativeAdjustment;
     private String remark;
+    private String q1;
+    private String q2;
+    private String q3;
+    private String anc;
+    private String mos;
+
 }

@@ -1,5 +1,6 @@
 package fhi360.it.assetverify.service;
 
+import fhi360.it.assetverify.dto.InventoryDto;
 import fhi360.it.assetverify.model.Inventory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

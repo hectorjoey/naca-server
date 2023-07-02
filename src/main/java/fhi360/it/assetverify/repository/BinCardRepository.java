@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 @Repository
 public interface BinCardRepository extends JpaRepository<BinCard, Long> {
@@ -16,4 +18,7 @@ public interface BinCardRepository extends JpaRepository<BinCard, Long> {
     Page<BinCard> findAll(Pageable pageable, @Param("keyword") String keyword);
 
     Page<BinCard> findByOrderByIdAsc(Pageable pageable);
+
+    List<BinCard> findByInventoryId(Long inventoryId);
+//    List<BinCard> findByInventoryId(Long inventoryId);
 }

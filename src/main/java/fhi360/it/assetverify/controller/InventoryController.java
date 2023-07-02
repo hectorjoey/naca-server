@@ -4,6 +4,7 @@ package fhi360.it.assetverify.controller;
 import fhi360.it.assetverify.dto.InventoryDto;
 import fhi360.it.assetverify.exception.ResourceNotFoundException;
 import fhi360.it.assetverify.model.Inventory;
+import fhi360.it.assetverify.model.StockStatusReport;
 import fhi360.it.assetverify.repository.BinCardRepository;
 import fhi360.it.assetverify.repository.InventoryRepository;
 import fhi360.it.assetverify.service.InventoryService;
@@ -71,7 +72,7 @@ public class InventoryController {
         System.out.println("Update inventory with ID = " + id + "...");
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for this id :: " + id));
-        inventory.setStockBalance(inventoryDto.getStockBalance());
+        inventory.setOpeningBalance(inventoryDto.getOpeningBalance());
         inventory.setClosingStock(inventoryDto.getClosingStock());
         final Inventory updatedInventory = inventoryRepository.save(inventory);
         System.out.println("Updated Inventory " + updatedInventory);
@@ -79,14 +80,47 @@ public class InventoryController {
     }
 
 
-    @PatchMapping("invent/{id}")
-    public Inventory updateAnInventory(@PathVariable("id") long id, @Valid @RequestBody InventoryDto inventoryDto) throws ResourceNotFoundException {
-
-        Inventory inventory= inventoryRepository.findById(id)
+    @PatchMapping("inventorys/{id}")
+    public Inventory updateInventorys(@PathVariable("id") Long id, @Valid @RequestBody InventoryDto inventoryDto) throws ResourceNotFoundException {
+        System.out.println("Update inventory with ID = " + id + "...");
+        Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for this id :: " + id));
-        inventory.setStockBalance(inventoryDto.getStockBalance());
-        inventory.setClosingStock(inventoryDto.getClosingStock());
-//        inventory.setLossesAndAdjustments(inventoryDto.getLossesAndAdjustments());
+        inventory.setQ1(inventoryDto.getQ1());
+        inventory.setQ2(inventoryDto.getQ2());
+        inventory.setQ3(inventoryDto.getQ3());
+        int totalQ = Integer.parseInt(inventory.getQ1()) + Integer.parseInt(inventory.getQ2()) + Integer.parseInt(inventory.getQ3());
+        System.out.println("totalQ ::: " + totalQ);
+        int calculateAnc = totalQ / 3;
+
+//        int calculateAnc;
+        double roundedUpAnc = Math.ceil(calculateAnc);
+        System.out.println("calculateAnc ::: " + calculateAnc);
+        inventory.setAnc(String.valueOf(roundedUpAnc));
+        System.out.println("rounde ;; ::: " + roundedUpAnc);
+
+        int calculateStockOnHand = Integer.parseInt(inventory.getStockOnHand());
+        int calculateMos = calculateStockOnHand / calculateAnc;
+        System.out.println("stock onhand ::: " + calculateStockOnHand);
+        inventory.setMos(String.valueOf(calculateMos));
+        System.out.println("MOs::: " + inventory.getMos());
+        System.out.println("Anc::: " + inventory.getAnc());
+
+        final Inventory updatedInventory = inventoryRepository.save(inventory);
+        System.out.println("Updated Inventory " + updatedInventory);
+        return inventoryRepository.save(updatedInventory);
+    }
+
+
+    @PatchMapping("invent/{id}")
+    public Inventory updateAnInventory(@PathVariable("id") Long id, @Valid @RequestBody InventoryDto inventoryDto) throws ResourceNotFoundException {
+
+        Inventory inventory = inventoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for this id :: " + id));
+//        inventory.setStockBalance(inventoryDto.getStockBalance());
+//        inventory.setClosingStock(inventoryDto.getClosingStock());
+        inventory.setLosses(inventoryDto.getLosses());
+        inventory.setPositiveAdjustment(inventoryDto.getPositiveAdjustment());
+        inventory.setNegativeAdjustment(inventoryDto.getNegativeAdjustment());
 
         final Inventory updatedInventory = inventoryRepository.save(inventory);
         System.out.println("Updated Inventory" + updatedInventory);

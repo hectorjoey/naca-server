@@ -1,21 +1,20 @@
-
 package fhi360.it.assetverify.model;
 
 import com.sun.istack.Nullable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.GenerationType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "binCard")
-public class BinCard {
+@Table(name = "issue_log")
+public class IssueLog {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String date;
     private String warehouseName;
@@ -45,6 +44,6 @@ public class BinCard {
     @Nullable
     private String closingStock;
 
-
+    private String lossesAndAdjustments;
 
 }

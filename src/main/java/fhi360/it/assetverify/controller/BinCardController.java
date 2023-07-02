@@ -8,10 +8,12 @@ import fhi360.it.assetverify.service.BinCardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 //@CrossOrigin(origins = "https://naca-client.netlify.app/")
@@ -52,5 +54,11 @@ public class BinCardController {
     @GetMapping("bincards/{keyword}")
     public Page<BinCard> getAllBinCard(Pageable pageable, @PathVariable("keyword") String keyword) {
         return binCardRepository.findAll(pageable, keyword);
+    }
+
+
+    @GetMapping("bincard/inventory/{inventoryId}")
+    public List<BinCard> getBincardByBatchNo(@PathVariable Long inventoryId) {
+        return binCardRepository.findByInventoryId(inventoryId);
     }
 }
