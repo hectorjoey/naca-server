@@ -39,7 +39,7 @@ public class IssueLogServiceImpl implements IssueLogService {
     public IssueLog addIssueLog(@RequestBody IssueLog issueLog) {
 
         System.out.println(issueLog.getBatchNo());
-        return  issueLogRepository.save(issueLog);
+        return issueLogRepository.save(issueLog);
     }
 
     @Override
@@ -96,52 +96,52 @@ public class IssueLogServiceImpl implements IssueLogService {
     }
 
 
-public static class CustomMappingStrategy<T> extends ColumnPositionMappingStrategy<T> {
+    public static class CustomMappingStrategy<T> extends ColumnPositionMappingStrategy<T> {
 
-    @Override
+        @Override
 
-    public String[] generateHeader(T bean) throws CsvRequiredFieldEmptyException {
+        public String[] generateHeader(T bean) throws CsvRequiredFieldEmptyException {
 
-        final int numColumns = getFieldMap().values().size();
+            final int numColumns = getFieldMap().values().size();
 
-        super.generateHeader(bean);
-
-
-        String[] header = new String[numColumns];
+            super.generateHeader(bean);
 
 
-        BeanField<?, ?> beanField;
-
-        for (int i = 0; i < numColumns; i++) {
-
-            beanField = findField(i);
-
-            String columnHeaderName = extractHeaderName(beanField);
-
-            header[i] = columnHeaderName;
-
-        }
-
-        return header;
-
-    }
+            String[] header = new String[numColumns];
 
 
-    private String extractHeaderName(final BeanField<?, ?> beanField) {
+            BeanField<?, ?> beanField;
 
-        if (beanField == null || beanField.getField() == null || beanField.getField().getDeclaredAnnotationsByType(
+            for (int i = 0; i < numColumns; i++) {
 
-                CsvBindByName.class).length == 0) {
+                beanField = findField(i);
 
-            return StringUtils.EMPTY;
+                String columnHeaderName = extractHeaderName(beanField);
+
+                header[i] = columnHeaderName;
+
+            }
+
+            return header;
 
         }
 
 
-        final CsvBindByName bindByNameAnnotation = beanField.getField().getDeclaredAnnotationsByType(CsvBindByName.class)[0];
+        private String extractHeaderName(final BeanField<?, ?> beanField) {
 
-        return bindByNameAnnotation.column();
+            if (beanField == null || beanField.getField() == null || beanField.getField().getDeclaredAnnotationsByType(
 
+                    CsvBindByName.class).length == 0) {
+
+                return StringUtils.EMPTY;
+
+            }
+
+
+            final CsvBindByName bindByNameAnnotation = beanField.getField().getDeclaredAnnotationsByType(CsvBindByName.class)[0];
+
+            return bindByNameAnnotation.column();
+
+        }
     }
-}
 }

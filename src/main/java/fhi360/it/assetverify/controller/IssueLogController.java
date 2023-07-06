@@ -1,5 +1,8 @@
 package fhi360.it.assetverify.controller;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import fhi360.it.assetverify.exception.ResourceNotFoundException;
 import fhi360.it.assetverify.model.Inventory;
 import fhi360.it.assetverify.model.IssueLog;
@@ -11,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -168,5 +172,94 @@ public class IssueLogController {
         try (PrintWriter writer = response.getWriter()) {
             writer.write(csvContent.toString());
         }
+    }
+
+    @GetMapping(value = "exports/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public void exportToPdf(HttpServletResponse response,
+                            String startDate,
+                            String endDate) throws IOException, DocumentException {
+        // Set response headers
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=search_results.pdf");
+
+        // Convert start and end dates to LocalDate objects
+
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate parsedStartDate = LocalDate.parse(startDate, df);
+        LocalDate parsedEndDate = LocalDate.parse(endDate,df);
+
+        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String formattedStartDate = parsedStartDate.format(desiredFormat);
+        String formattedEndDate = parsedEndDate.format(desiredFormat);
+        // Your logic to retrieve data based on start and end dates, page, and size
+        // Replace this with your actual data retrieval logic
+        List<IssueLog> data = getData(formattedStartDate, formattedEndDate);
+
+        // Create a new document
+        Document document = new Document(PageSize.A4);
+        PdfWriter.getInstance(document, response.getOutputStream());
+
+        // Open the document
+        document.open();
+
+        // Add content to the document
+        Font headingFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
+        Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+
+        Paragraph heading = new Paragraph("Search Results", headingFont);
+        heading.setAlignment(Paragraph.ALIGN_CENTER);
+        document.add(heading);
+
+        Paragraph content = new Paragraph("Your search results go here.", normalFont);
+        document.add(content);
+
+        // Create a table to display the data
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        // Add table headers
+        table.addCell("Date");
+        table.addCell("Warehouse Name");
+        table.addCell("Item Description");
+        table.addCell("Voucher OR Ref No.");
+        table.addCell("Received from");
+        table.addCell("Issued To");
+        table.addCell("Batch Number");
+        table.addCell("Expiry Date");
+        table.addCell("Quantity Received");
+        table.addCell("Quantity Issued");
+        table.addCell("Stock Balance");
+        table.addCell("Issued to Email");
+        table.addCell("Phone Number");
+        table.addCell("Dispatched Location");
+        // Add table rows with data
+        for (IssueLog item : data) {
+            table.addCell(item.getDate());
+            table.addCell(item.getWarehouseName());
+            table.addCell(item.getItemDescription());
+            table.addCell(item.getVoucherOrRefNumber());
+            table.addCell(item.getReceivedFrom());
+            table.addCell(item.getIssuedTo());
+            table.addCell(item.getBatchNo());
+            table.addCell(item.getExpiryDate());
+            table.addCell(item.getQuantityReceived());
+            table.addCell(item.getQuantityIssued());
+            table.addCell(item.getStockBalance());
+            table.addCell(item.getIssuedToEmail());
+            table.addCell(item.getPhone());
+            table.addCell(item.getDispatchedLocation());
+        }
+        // Add the table to the document
+        document.add(table);
+
+        // Close the document
+        document.close();
+    }
+
+    // Your logic to retrieve data based on start and end dates, page, and size
+    // Replace this with your actual data retrieval logic
+    private List<IssueLog> getData(String startDate, String endDate) {
+        // Your implementation here to retrieve data based on start and end dates, page, and size
+        // Return the data as a List<YourDataObject>
+        return issueLogRepository.findByDateBetween(startDate, endDate );
     }
 }

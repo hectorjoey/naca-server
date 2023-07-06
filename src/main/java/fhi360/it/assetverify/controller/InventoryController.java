@@ -201,4 +201,6 @@ public class InventoryController {
         String formattedEndDate = end.format(desiredFormat);
         return inventoryService.searchByDate(formattedStartDate, formattedEndDate, PageRequest.of(page - 1, 10));
     }
+
+
 }
