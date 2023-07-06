@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,6 +21,9 @@ public interface IssueLogRepository extends JpaRepository<IssueLog, Long> {
 
     List<IssueLog> findByInventoryId(Long inventoryId);
 
+    Page<IssueLog> findByDateBetween(String startDate, String endDate, Pageable pageable);
 
-//    Page<IssueLog> findByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+    List<IssueLog> findByDateBetween(String startDate, String endDate);
+
+    List<IssueLog> findByItemDescriptionContaining(String itemDescription);
 }

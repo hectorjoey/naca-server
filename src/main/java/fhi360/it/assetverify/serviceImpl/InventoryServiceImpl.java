@@ -1,6 +1,7 @@
 package fhi360.it.assetverify.serviceImpl;
 
 import fhi360.it.assetverify.model.Inventory;
+import fhi360.it.assetverify.model.IssueLog;
 import fhi360.it.assetverify.repository.InventoryRepository;
 import fhi360.it.assetverify.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -125,5 +126,10 @@ public class InventoryServiceImpl implements InventoryService {
             e.printStackTrace();
             return "Invalid Date found";
         }
+    }
+
+    @Override
+    public Page<Inventory> searchByDate(String startDate, String endDate, Pageable pageable) {
+        return inventoryRepository.findByDateReceivedBetween(startDate, endDate, pageable);
     }
 }

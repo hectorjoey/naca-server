@@ -4,24 +4,30 @@ package fhi360.it.assetverify.controller;
 import fhi360.it.assetverify.dto.InventoryDto;
 import fhi360.it.assetverify.exception.ResourceNotFoundException;
 import fhi360.it.assetverify.model.Inventory;
+import fhi360.it.assetverify.model.IssueLog;
 import fhi360.it.assetverify.model.StockStatusReport;
 import fhi360.it.assetverify.repository.BinCardRepository;
 import fhi360.it.assetverify.repository.InventoryRepository;
 import fhi360.it.assetverify.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-//@CrossOrigin(origins = "https://naca-client.netlify.app/")
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/v1/")
@@ -139,5 +145,60 @@ public class InventoryController {
         Map<String, Boolean> response = new HashMap<>();
         response.put("deleted", Boolean.TRUE);
         return response;
+    }
+
+
+    @GetMapping("export")
+    public void exportToCSV(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, HttpServletResponse response) throws IOException {
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate start = LocalDate.parse(startDate, dateTimeFormatter);
+        LocalDate end = LocalDate.parse(endDate, dateTimeFormatter);
+
+        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String formattedStartDate = start.format(desiredFormat);
+        String formattedEndDate = end.format(desiredFormat);
+
+        List<Inventory> inventories = inventoryRepository.findByDateReceivedBetween(formattedStartDate, formattedEndDate);
+
+        // Create a StringBuilder to store the CSV content
+        StringBuilder csvContent = new StringBuilder();
+        csvContent.append("Warehouse Name,Date Received, Item Description, Batch Number, Expiry date, Shelf Life (Months), Stock Balance, Month Of Stock, Donor \n"); // Replace with actual column names
+
+        // Append each IssueLog entry as a CSV row
+        for (Inventory inventory : inventories) {
+            csvContent.append(inventory.getWarehouseName()).append(",");
+            csvContent.append(inventory.getDateReceived()).append(",");
+            csvContent.append(inventory.getItemDescription()).append(",");
+            csvContent.append(inventory.getBatchNo()).append(",");
+            csvContent.append(inventory.getExpiryDate()).append(",");
+            csvContent.append(inventory.getShellLife()).append(",");
+            csvContent.append(inventory.getStockBalance()).append(",");
+            csvContent.append(inventory.getMos()).append(",");
+            csvContent.append(inventory.getDonor()).append("\n");
+        }
+
+        // Set the response headers for CSV file download
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=export.csv");
+
+        // Write the CSV content to the response output stream
+        try (PrintWriter writer = response.getWriter()) {
+            writer.write(csvContent.toString());
+        }
+    }
+
+
+
+    @GetMapping("searches")
+    public Page<Inventory> search(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, @RequestParam("page") int page) {
+        DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate start = LocalDate.parse(startDate, inputFormat);
+        LocalDate end = LocalDate.parse(endDate, inputFormat);
+
+        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String formattedStartDate = start.format(desiredFormat);
+        String formattedEndDate = end.format(desiredFormat);
+        return inventoryService.searchByDate(formattedStartDate, formattedEndDate, PageRequest.of(page - 1, 10));
     }
 }

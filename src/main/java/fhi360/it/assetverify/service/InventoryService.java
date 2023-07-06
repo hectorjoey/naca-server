@@ -15,4 +15,7 @@ public interface InventoryService {
     List<Inventory> getInventories();
 
     Page<Inventory> getHealthCommodities(Pageable pageable);
+
+    Page<Inventory> searchByDate(String startDate, String endDate, Pageable pageable);
+
 }

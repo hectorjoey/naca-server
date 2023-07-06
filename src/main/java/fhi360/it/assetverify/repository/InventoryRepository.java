@@ -19,4 +19,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Page<Inventory> findByOrderByIdAsc(Pageable pageable);
 
 
+    List<Inventory> findByDateReceivedBetween (String startDate, String endDate);
+
+    Page<Inventory> findByDateReceivedBetween(String startDate, String endDate, Pageable pageable);
+
 }

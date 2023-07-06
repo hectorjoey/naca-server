@@ -44,6 +44,6 @@ public class IssueLog {
     @Nullable
     private String closingStock;
 
-    private String lossesAndAdjustments;
+//    private String lossesAndAdjustments;
 
 }
