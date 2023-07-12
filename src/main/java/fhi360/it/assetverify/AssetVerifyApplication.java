@@ -8,7 +8,5 @@ public class AssetVerifyApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AssetVerifyApplication.class, args);
-
 	}
-
 }

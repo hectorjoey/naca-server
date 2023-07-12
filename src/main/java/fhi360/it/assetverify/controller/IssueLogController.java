@@ -3,6 +3,8 @@ package fhi360.it.assetverify.controller;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import fhi360.it.assetverify.dto.InventoryDto;
+import fhi360.it.assetverify.dto.IssueLogDto;
 import fhi360.it.assetverify.exception.ResourceNotFoundException;
 import fhi360.it.assetverify.model.Inventory;
 import fhi360.it.assetverify.model.IssueLog;
@@ -19,11 +21,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
@@ -41,14 +45,15 @@ public class IssueLogController {
 
     @GetMapping("issuelogs")
     public Page<IssueLog> getAllBinCards(Pageable pageable) {
-        return issueLogRepository.findByOrderByIdAsc(pageable);
+        return issueLogService.getAllIssueLogs(pageable);
     }
-
 
     @PostMapping("issuelog")
     ResponseEntity<IssueLog> createIssueLog(@RequestBody IssueLog issueLog) {
-        int closingStock = Integer.parseInt(issueLog.getOpeningBalance()) + Integer.parseInt(issueLog.getQuantityReceived()) - Integer.parseInt(issueLog.getQuantityIssued())
-                - Integer.parseInt(issueLog.getLosses()) + Integer.parseInt(issueLog.getPositiveAdjustment()) - Integer.parseInt(issueLog.getNegativeAdjustment());
+        int closingStock = Integer.parseInt(issueLog.getOpeningBalance()) + Integer.parseInt(issueLog.getQuantityReceived())
+                - Integer.parseInt(issueLog.getQuantityIssued()) - Integer.parseInt(issueLog.getLosses())
+                + Integer.parseInt(issueLog.getPositiveAdjustment()) - Integer.parseInt(issueLog.getNegativeAdjustment());
+
         issueLog.setClosingStock(String.valueOf(closingStock));
         issueLog.setStockBalance(String.valueOf(closingStock));
         issueLog.setClosingStock(String.valueOf(closingStock));
@@ -105,27 +110,48 @@ public class IssueLogController {
     }
 
 
-//    @GetMapping("/api/export")
-//    public void export(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, HttpServletResponse httpResponse) throws IOException {
-//        ByteArrayOutputStream baos =  issueLogService.exportToCSV(startDate, endDate);
-//        writeStream(baos, httpResponse);
-//    }
+    @PatchMapping("issuelog/{id}")
+    public void updateIssueLog(@PathVariable("id") Long id, @Valid @RequestBody IssueLogDto issueLogDto) throws ResourceNotFoundException {
+        System.out.println("Update Issue log with ID = " + id + "...");
+        IssueLog issueLog = issueLogRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("issue log not found for this id :: " + id));
+        int oldQuantityIssued = Integer.parseInt(issueLog.getQuantityIssued());
+        int newQuantityIssued = Integer.parseInt(issueLogDto.getQuantityIssued());
+        int balanceOfStock = Integer.parseInt(issueLog.getStockBalance()) + oldQuantityIssued;
+        int newBalanceStock = balanceOfStock - newQuantityIssued;
 
-//    private void writeStream(ByteArrayOutputStream baos, HttpServletResponse response) throws IOException {
-//
-//        response.setHeader("Content-Type", "application/octet-stream");
-//
-//        response.setHeader("Content-Length", Integer.valueOf(baos.size()).toString());
-//
-//        OutputStream outputStream = response.getOutputStream();
-//
-//        outputStream.write(baos.toByteArray());
-//
-//        outputStream.close();
-//
-//        response.flushBuffer();
-//
-//    }
+        issueLog.setIssuedTo(issueLogDto.getIssuedTo());
+        issueLog.setPhone(issueLogDto.getPhone());
+        issueLog.setIssuedToEmail(issueLogDto.getIssuedToEmail());
+        issueLog.setDispatchedLocation(issueLogDto.getDispatchedLocation());
+
+        IssueLog issueLog1 = issueLogRepository.findById(id).get();
+        issueLog1.setQuantityIssued(String.valueOf(newQuantityIssued));
+
+        issueLog1.setClosingStock(String.valueOf(newBalanceStock));
+        issueLog1.setStockBalance(String.valueOf(newBalanceStock));
+
+        System.out.println("old issued " + oldQuantityIssued);
+        System.out.println("balance Stock " + balanceOfStock);
+
+        System.out.println("new issued " + newQuantityIssued);
+        System.out.println("new balance  " + newBalanceStock);
+
+        issueLog.setStockBalance(String.valueOf(newBalanceStock));
+        Inventory inventory = inventoryRepository.findById(issueLog.getInventoryId()).orElse(null);
+        if (inventory != null) {
+            inventory.setClosingStock(String.valueOf(newBalanceStock));
+            inventory.setStockOnHand(String.valueOf(newBalanceStock));
+            inventory.setStockBalance(String.valueOf(newBalanceStock));
+            inventory.setOpeningBalance(String.valueOf(newBalanceStock));
+            inventory.setQuantityIssued(String.valueOf(newQuantityIssued));
+
+            System.out.println("Opening balance:: " + balanceOfStock);
+        }
+        final IssueLog updatedIssueLog = issueLogRepository.save(issueLog);
+        System.out.println("Updated Inventory " + updatedIssueLog);
+//        return issueLogRepository.save(updatedIssueLog);
+    }
 
 
     @GetMapping("exports")
@@ -174,25 +200,24 @@ public class IssueLogController {
         }
     }
 
-    @GetMapping(value = "exports/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "issuelog/exports/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public void exportToPdf(HttpServletResponse response,
-                            String startDate,
-                            String endDate) throws IOException, DocumentException {
+                            @RequestParam String startDate,
+                            @RequestParam String endDate) throws IOException, DocumentException {
         // Set response headers
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "attachment; filename=search_results.pdf");
 
         // Convert start and end dates to LocalDate objects
-
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate parsedStartDate = LocalDate.parse(startDate, df);
-        LocalDate parsedEndDate = LocalDate.parse(endDate,df);
+        LocalDate parsedEndDate = LocalDate.parse(endDate, df);
 
         DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String formattedStartDate = parsedStartDate.format(desiredFormat);
         String formattedEndDate = parsedEndDate.format(desiredFormat);
-        // Your logic to retrieve data based on start and end dates, page, and size
-        // Replace this with your actual data retrieval logic
+
+        // Your logic to retrieve data based on start and end dates
         List<IssueLog> data = getData(formattedStartDate, formattedEndDate);
 
         // Create a new document
@@ -216,38 +241,21 @@ public class IssueLogController {
         // Create a table to display the data
         PdfPTable table = new PdfPTable(4);
         table.setWidthPercentage(100);
+
         // Add table headers
         table.addCell("Date");
         table.addCell("Warehouse Name");
         table.addCell("Item Description");
         table.addCell("Voucher OR Ref No.");
-        table.addCell("Received from");
-        table.addCell("Issued To");
-        table.addCell("Batch Number");
-        table.addCell("Expiry Date");
-        table.addCell("Quantity Received");
-        table.addCell("Quantity Issued");
-        table.addCell("Stock Balance");
-        table.addCell("Issued to Email");
-        table.addCell("Phone Number");
-        table.addCell("Dispatched Location");
+
         // Add table rows with data
         for (IssueLog item : data) {
             table.addCell(item.getDate());
             table.addCell(item.getWarehouseName());
             table.addCell(item.getItemDescription());
             table.addCell(item.getVoucherOrRefNumber());
-            table.addCell(item.getReceivedFrom());
-            table.addCell(item.getIssuedTo());
-            table.addCell(item.getBatchNo());
-            table.addCell(item.getExpiryDate());
-            table.addCell(item.getQuantityReceived());
-            table.addCell(item.getQuantityIssued());
-            table.addCell(item.getStockBalance());
-            table.addCell(item.getIssuedToEmail());
-            table.addCell(item.getPhone());
-            table.addCell(item.getDispatchedLocation());
         }
+
         // Add the table to the document
         document.add(table);
 
@@ -255,11 +263,10 @@ public class IssueLogController {
         document.close();
     }
 
-    // Your logic to retrieve data based on start and end dates, page, and size
+    // Your logic to retrieve data based on start and end dates
     // Replace this with your actual data retrieval logic
     private List<IssueLog> getData(String startDate, String endDate) {
-        // Your implementation here to retrieve data based on start and end dates, page, and size
-        // Return the data as a List<YourDataObject>
-        return issueLogRepository.findByDateBetween(startDate, endDate );
+        // Replace issueLogRepository with your actual repository or service class
+        return issueLogRepository.findByDateBetween(startDate, endDate);
     }
 }

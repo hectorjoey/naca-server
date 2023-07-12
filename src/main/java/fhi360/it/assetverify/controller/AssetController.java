@@ -1,5 +1,10 @@
 package fhi360.it.assetverify.controller;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfDocument;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import fhi360.it.assetverify.dto.AssetDto;
 import fhi360.it.assetverify.exception.AlreadyExistsException;
 import fhi360.it.assetverify.exception.ResourceNotFoundException;
@@ -8,14 +13,26 @@ import fhi360.it.assetverify.repository.AssetRepository;
 import fhi360.it.assetverify.service.AssetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.xddf.usermodel.text.TextAlignment;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +51,7 @@ public class AssetController {
 
     @GetMapping({"assets"})
     public Page<Asset> getAllAssets(final Pageable pageable) {
-        return this.assetRepository.findByOrderByStatesAsc(pageable);
+        return this.assetRepository.findByOrderById(pageable);
     }
 
     @GetMapping({"assets/{keyword}"})
@@ -50,6 +67,11 @@ public class AssetController {
     @GetMapping({"all-assets/{id}"})
     public Optional<Asset> getAssetsById(@PathVariable("id") final Long id) {
         return this.assetRepository.findById(id);
+    }
+
+    @GetMapping("/states")
+    public List<Asset> getAssetsByState() {
+        return assetRepository.findAll();
     }
 
     @GetMapping({"asset/{id}"})
@@ -115,5 +137,180 @@ public class AssetController {
         final Map<String, Boolean> response = new HashMap<>();
         response.put("deleted", Boolean.TRUE);
         return response;
+    }
+
+//    @GetMapping("asset-search")
+//    public Page<Asset> search(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, @RequestParam("page") int page) {
+//        DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+//        LocalDate start = LocalDate.parse(startDate, inputFormat);
+//        LocalDate end = LocalDate.parse(endDate, inputFormat);
+//
+//        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+//        String formattedStartDate = start.format(desiredFormat);
+//        String formattedEndDate = end.format(desiredFormat);
+//
+//        PageRequest pageRequest = PageRequest.of(page, 100);
+//        return assetService.searchByDateReceived(formattedStartDate, formattedEndDate, pageRequest);
+//
+//    }
+
+
+//    @GetMapping("asset/exports")
+//    public void exportToCSV(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, HttpServletResponse response) throws IOException {
+//
+//        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+//        LocalDate start = LocalDate.parse(startDate, df);
+//        LocalDate end = LocalDate.parse(endDate, df);
+//
+//        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+//        String formattedStartDate = start.format(desiredFormat);
+//        String formattedEndDate = end.format(desiredFormat);
+//
+//        List<Asset> assetLogs = assetRepository.findByDateReceivedBetween(formattedStartDate, formattedEndDate);
+//
+//        // Create a StringBuilder to store the CSV content
+//        StringBuilder csvContent = new StringBuilder();
+//        csvContent.append("Description,Category, Type,Asset ID,Serial Number, Date Received,  Funder, Model, States, Location, Custodian, Condition, Email Address, Phone, Status  \n"); // Replace with actual column names
+//
+//        // Append each IssueLog entry as a CSV row
+//        for (Asset asset : assetLogs) {
+//            csvContent.append(asset.getDescription()).append(",");
+//            csvContent.append(asset.getCategory()).append(",");
+//            csvContent.append(asset.getType()).append(",");
+//            csvContent.append(asset.getAssetId()).append(",");
+//            csvContent.append(asset.getSerialNumber()).append(",");
+//            csvContent.append(asset.getDateReceived()).append(",");
+//            csvContent.append(asset.getFunder()).append(",");
+//            csvContent.append(asset.getModel()).append(",");
+//            csvContent.append(asset.getStates()).append(",");
+//            csvContent.append(asset.getLocation()).append(",");
+//            csvContent.append(asset.getCustodian()).append(",");
+//            csvContent.append(asset.getCondition()).append(",");
+//            csvContent.append(asset.getEmailAddress()).append(",");
+//            csvContent.append(asset.getPhone()).append(",");
+//            csvContent.append(asset.getStatus()).append("\n");
+//            // Append additional properties as needed
+//        }
+//
+//        // Set the response headers for CSV file download
+//        response.setContentType("text/csv");
+//        response.setHeader("Content-Disposition", "attachment; filename=export.csv");
+//
+//        // Write the CSV content to the response output stream
+//        try (PrintWriter writer = response.getWriter()) {
+//            writer.write(csvContent.toString());
+//        }
+//    }
+
+    @GetMapping("asset-export")
+    public ResponseEntity<byte[]> exportToExcel(HttpServletResponse response) throws IOException {
+        List<Asset> assets = assetService.getAllAssets();
+
+        XSSFWorkbook workbook = assetService.createExcelFile(assets);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        byte[] excelContent = outputStream.toByteArray();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=exported_models.xlsx");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"exported_models.xlsx\"")
+                .body(excelContent);
+    }
+
+
+    @GetMapping("/export-to-pdf")
+    public ResponseEntity<byte[]> exportToPDF() {
+        try {
+            List<Asset> data = assetService.getAllAssets();
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            Document document = new Document(PageSize.A4.rotate()); // Set landscape orientation
+            PdfWriter.getInstance(document, outputStream);
+
+            document.open();
+            addDataToPDF(document, data);
+            document.close();
+
+            byte[] pdfBytes = outputStream.toByteArray();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "data.pdf");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void addDataToPDF(Document document, List<Asset> data) throws DocumentException {
+        PdfPTable table = new PdfPTable(19); // Number of columns
+        table.setWidthPercentage(100); // Set table width to 100% of the page
+
+        // Set table headers
+        table.addCell(createCell("Description", true));
+        table.addCell(createCell("Category", true));
+        table.addCell(createCell("Type", true));
+        table.addCell(createCell("Asset ID", true));
+        table.addCell(createCell("Serial Number", true));
+        table.addCell(createCell("Date Received", true));
+        table.addCell(createCell("Funder", true));
+        table.addCell(createCell("Model", true));
+        table.addCell(createCell("Purchase Price", true));
+        table.addCell(createCell("States", true));
+        table.addCell(createCell("Year of Purchase", true));
+        table.addCell(createCell("Implementer", true));
+        table.addCell(createCell("Implementation Period", true));
+        table.addCell(createCell("Location", true));
+        table.addCell(createCell("Custodian", true));
+        table.addCell(createCell("Condition", true));
+        table.addCell(createCell("Email Address", true));
+        table.addCell(createCell("Phone", true));
+        table.addCell(createCell("Status", true));
+
+        // Add data rows
+        for (Asset obj : data) {
+            table.addCell(createCell(obj.getDescription(), false));
+            table.addCell(createCell(obj.getCategory(), false));
+            table.addCell(createCell(obj.getType(), false));
+            table.addCell(createCell(obj.getAssetId(), false));
+            table.addCell(createCell(obj.getSerialNumber(), false));
+            table.addCell(createCell(obj.getDateReceived(), false));
+            table.addCell(createCell(obj.getFunder(), false));
+            table.addCell(createCell(obj.getModel(), false));
+            table.addCell(createCell(obj.getPurchasePrice(), false));
+            table.addCell(createCell(obj.getStates(), false));
+            table.addCell(createCell(obj.getYearOfPurchase(), false));
+            table.addCell(createCell(obj.getImplementer(), false));
+            table.addCell(createCell(obj.getImplementationPeriod(), false));
+            table.addCell(createCell(obj.getLocation(), false));
+            table.addCell(createCell(obj.getCustodian(), false));
+            table.addCell(createCell(obj.getCondition(), false));
+            table.addCell(createCell(obj.getEmailAddress(), false));
+            table.addCell(createCell(obj.getPhone(), false));
+            table.addCell(createCell(obj.getStatus(), false));
+        }
+
+        // Add the table to the document
+        document.add(table);
+    }
+
+    private PdfPCell createCell(String content, boolean isHeader) {
+        PdfPCell cell = new PdfPCell(new Paragraph(content));
+        cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(2);
+
+        Font font = isHeader ? FontFactory.getFont(FontFactory.HELVETICA_BOLD, 6) : FontFactory.getFont(FontFactory.HELVETICA, 7);
+        cell.setPhrase(new Paragraph(content, font));
+
+        return cell;
     }
 }

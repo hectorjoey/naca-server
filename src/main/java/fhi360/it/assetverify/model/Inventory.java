@@ -46,4 +46,6 @@ public class Inventory {
     private String anc;
     private String mos;
 
+    private String total;
+
 }

@@ -44,20 +44,14 @@ public class ReportController {
     }
 
 
-//    @GetMapping("/laptops/date")
-//    public ResponseEntity<List<Report>> getLaptopsByCreatedDate (@RequestParam Date startDate,
-//                                                                 @RequestParam Date endDate) {
-//        return new ResponseEntity<>(reportRepository.findByDateBetween(startDate, endDate), HttpStatus.OK);
-//    }
-
-    @GetMapping
+    @GetMapping("status/search")
     public ResponseEntity<List<StockStatusReport>> getData(
-            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(value = "startDate", required = false)String  startDate,
+            @RequestParam(value = "endDate", required = false) String endDate) {
 
         List<StockStatusReport> data;
 
-        if (String.valueOf(startDate) != null && String.valueOf(endDate) != null) {
+        if (startDate != null && endDate != null) {
             data = stockStatusReportRepository.findByDateBetween(startDate, endDate);
         } else {
             data = stockStatusReportRepository.findAll();

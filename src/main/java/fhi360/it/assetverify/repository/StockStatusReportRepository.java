@@ -17,7 +17,7 @@ public interface StockStatusReportRepository extends JpaRepository<StockStatusRe
     @Query("Select s from StockStatusReport s where s.warehouseName=:keyword OR s.itemDescription =: keyword")
     Page<StockStatusReport> findAll(Pageable pageable, @Param("keyword") String keyword);
 
-    List<StockStatusReport> findByDateBetween(LocalDate startDate, LocalDate endDate);
+    List<StockStatusReport> findByDateBetween(String startDate, String endDate);
 
     Page<StockStatusReport> findByOrderByIdAsc(Pageable pageable);
 

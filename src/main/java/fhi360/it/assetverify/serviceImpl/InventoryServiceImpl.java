@@ -41,12 +41,29 @@ public class InventoryServiceImpl implements InventoryService {
             value.setQuantityReceived(value.getQuantityReceived());
             value.setNegativeAdjustment(calNegativeAdjustment(value.getNegativeAdjustment()));
             value.setPositiveAdjustment(calPositiveAdjustment(value.getPositiveAdjustment()));
-            value.setStockOnHand(calStockOnHand(value.getOpeningBalance(), value.getQuantityReceived(), value.getQuantityIssued(), value.getLosses(), value.getPositiveAdjustment(), value.getNegativeAdjustment()));
+            value.setStockOnHand(value.getStockBalance());
+//            value.setStockOnHand(calStockOnHand(value.getOpeningBalance(), value.getQuantityReceived(), value.getQuantityIssued(), value.getLosses(), value.getPositiveAdjustment(), value.getNegativeAdjustment()));
             value.setStockBalance(calStockBal(value.getStockBalance()));
             value.setQuantityIssued(calQuantityIssued(value.getQuantityIssued()));
+//            value.setTotal(calcTotal(value.getQuantityIssued()));
         }
         return result;
     }
+
+//    private String calcTotal(String quantityIssued) {
+//        // Split the input string by commas to get individual quantity values
+//        String[] quantities = quantityIssued.split(",");
+//        int total = Integer.parseInt(quantityIssued);
+//
+//        // Iterate over each quantity and accumulate the sum
+//        for (String quantity : quantities) {
+//            // Parse each quantity as an integer and add it to the total
+//            total += Integer.parseInt(quantity.trim());
+//        }
+//        System.out.println(total);
+//        // Convert the total back to a strin
+//        return String.valueOf(total);
+//    }
 
     private String calQuantityIssued(String quantityIssued) {
         if (quantityIssued == null) {
@@ -56,17 +73,17 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-    private String calStockOnHand(String openingBalance, String quantityReceived, String quantityIssued, String losses, String positiveAdjustment, String negativeAdjustment) {
-        try {
-            int calculatedStock = parseOrDefault(openingBalance) + parseOrDefault(quantityReceived)
-                    - parseOrDefault(quantityIssued) - parseOrDefault(losses)
-                    + parseOrDefault(positiveAdjustment) - parseOrDefault(negativeAdjustment);
-            return String.valueOf(calculatedStock);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            return "Invalid input found";
-        }
-    }
+//    private String calStockOnHand(String openingBalance, String quantityReceived, String quantityIssued, String losses, String positiveAdjustment, String negativeAdjustment) {
+//        try {
+//            int calculatedStock = parseOrDefault(openingBalance) + parseOrDefault(quantityReceived)
+//                    - parseOrDefault(quantityIssued) - parseOrDefault(losses)
+//                    + parseOrDefault(positiveAdjustment) - parseOrDefault(negativeAdjustment);
+//            return String.valueOf(calculatedStock);
+//        } catch (NumberFormatException e) {
+//            e.printStackTrace();
+//            return "Invalid input found";
+//        }
+//    }
 
     private int parseOrDefault(String value) {
         return value != null && !value.isEmpty() ? Integer.parseInt(value) : 0;

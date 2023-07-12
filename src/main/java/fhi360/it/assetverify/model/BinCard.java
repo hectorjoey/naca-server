@@ -46,5 +46,4 @@ public class BinCard {
     private String closingStock;
 
 
-
 }

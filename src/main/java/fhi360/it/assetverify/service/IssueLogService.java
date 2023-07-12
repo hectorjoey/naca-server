@@ -1,5 +1,6 @@
 package fhi360.it.assetverify.service;
 
+import fhi360.it.assetverify.model.Inventory;
 import fhi360.it.assetverify.model.IssueLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,9 @@ public interface IssueLogService {
 
     List<IssueLog> getAllIssueLogs();
 
+
+    Page<IssueLog> getAllIssueLogs(Pageable pageable);
+
     Page<IssueLog> searchByDate(String startDate, String endDate, Pageable pageable);
 
-    ByteArrayOutputStream exportToCSV(String startDate, String endDate) throws IOException;
 }
