@@ -25,5 +25,5 @@ public interface AssetService {
 
 
     List<Asset> getAllAssets();
-    XSSFWorkbook createExcelFile(List<Asset> assets);
+//    XSSFWorkbook createExcelFile(List<Asset> assets);
 }

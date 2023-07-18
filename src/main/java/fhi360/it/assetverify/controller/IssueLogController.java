@@ -1,6 +1,7 @@
 package fhi360.it.assetverify.controller;
 
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import fhi360.it.assetverify.dto.InventoryDto;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +24,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -192,7 +196,7 @@ public class IssueLogController {
 
         // Set the response headers for CSV file download
         response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=export.csv");
+        response.setHeader("Content-Disposition", "attachment; filename=health-commodities.csv");
 
         // Write the CSV content to the response output stream
         try (PrintWriter writer = response.getWriter()) {
@@ -200,73 +204,104 @@ public class IssueLogController {
         }
     }
 
-    @GetMapping(value = "issuelog/exports/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public void exportToPdf(HttpServletResponse response,
-                            @RequestParam String startDate,
-                            @RequestParam String endDate) throws IOException, DocumentException {
-        // Set response headers
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=search_results.pdf");
+    @GetMapping("issuelog/export-to-pdf")
+    public ResponseEntity<byte[]> exportToPDF(
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate,
+            HttpServletResponse response) {
+        try {
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            LocalDate start = LocalDate.parse(startDate, df);
+            LocalDate end = LocalDate.parse(endDate, df);
 
-        // Convert start and end dates to LocalDate objects
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        LocalDate parsedStartDate = LocalDate.parse(startDate, df);
-        LocalDate parsedEndDate = LocalDate.parse(endDate, df);
+            DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String formattedStartDate = start.format(desiredFormat);
+            String formattedEndDate = end.format(desiredFormat);
 
-        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String formattedStartDate = parsedStartDate.format(desiredFormat);
-        String formattedEndDate = parsedEndDate.format(desiredFormat);
+            List<IssueLog> issueLogs = issueLogRepository.findByDateBetween(formattedStartDate, formattedEndDate);
 
-        // Your logic to retrieve data based on start and end dates
-        List<IssueLog> data = getData(formattedStartDate, formattedEndDate);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            Document document = new Document(PageSize.A4); // Use default page size
 
-        // Create a new document
-        Document document = new Document(PageSize.A4);
-        PdfWriter.getInstance(document, response.getOutputStream());
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
 
-        // Open the document
-        document.open();
+            // Create a table with 13 columns
+            PdfPTable table = new PdfPTable(14);
+            table.setWidthPercentage(100);
 
-        // Add content to the document
-        Font headingFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+            // Add table headers
+            addTableHeader(table);
 
-        Paragraph heading = new Paragraph("Search Results", headingFont);
-        heading.setAlignment(Paragraph.ALIGN_CENTER);
-        document.add(heading);
+            // Add table rows
+            addTableRows(table, issueLogs);
 
-        Paragraph content = new Paragraph("Your search results go here.", normalFont);
-        document.add(content);
+            // Add the table to the document
+            document.add(table);
+            document.close();
 
-        // Create a table to display the data
-        PdfPTable table = new PdfPTable(4);
-        table.setWidthPercentage(100);
+            byte[] pdfBytes = outputStream.toByteArray();
 
-        // Add table headers
-        table.addCell("Date");
-        table.addCell("Warehouse Name");
-        table.addCell("Item Description");
-        table.addCell("Voucher OR Ref No.");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "health-commodities-logs.pdf");
 
-        // Add table rows with data
-        for (IssueLog item : data) {
-            table.addCell(item.getDate());
-            table.addCell(item.getWarehouseName());
-            table.addCell(item.getItemDescription());
-            table.addCell(item.getVoucherOrRefNumber());
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (DateTimeParseException | DocumentException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void addTableHeader(PdfPTable table) {
+        table.addCell(createCell("Date", true));
+        table.addCell(createCell("Warehouse Name", true));
+        table.addCell(createCell("Item Description", true));
+        table.addCell(createCell("Voucher or Ref. Number", true));
+        table.addCell(createCell("Received from", true));
+        table.addCell(createCell("Issued to", true));
+        table.addCell(createCell("Batch Number", true));
+        table.addCell(createCell("Expiry date", true));
+        table.addCell(createCell("Quantity received", true));
+        table.addCell(createCell("Quantity issued", true));
+        table.addCell(createCell("Stock balance", true));
+        table.addCell(createCell("Issuedto email", true));
+        table.addCell(createCell("Phone", true));
+        table.addCell(createCell("Dispatched Location", true));
+    }
+
+    private void addTableRows(PdfPTable table, List<IssueLog> issueLogs) {
+        for (IssueLog issueLog : issueLogs) {
+            table.addCell(createCell(issueLog.getDate(), false));
+            table.addCell(createCell(issueLog.getWarehouseName(), false));
+            table.addCell(createCell(issueLog.getItemDescription(), false));
+            table.addCell(createCell(issueLog.getVoucherOrRefNumber(), false));
+            table.addCell(createCell(issueLog.getReceivedFrom(), false));
+            table.addCell(createCell(issueLog.getIssuedTo(), false));
+            table.addCell(createCell(issueLog.getBatchNo(), false));
+            table.addCell(createCell(issueLog.getExpiryDate(), false));
+            table.addCell(createCell(issueLog.getQuantityReceived(), false));
+            table.addCell(createCell(issueLog.getQuantityIssued(), false));
+            table.addCell(createCell(issueLog.getStockBalance(), false));
+            table.addCell(createCell(issueLog.getIssuedToEmail(), false));
+            table.addCell(createCell(issueLog.getPhone(), false));
+            table.addCell(createCell(issueLog.getDispatchedLocation(), false));
+        }
+    }
+
+    private PdfPCell createCell(String content, boolean isHeader) {
+        PdfPCell cell = new PdfPCell();
+        cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(2);
+
+        if (isHeader) {
+            cell.setPhrase(new Paragraph(content, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 6)));
+        } else {
+            cell.setPhrase(new Paragraph(content, FontFactory.getFont(FontFactory.HELVETICA, 6)));
         }
 
-        // Add the table to the document
-        document.add(table);
-
-        // Close the document
-        document.close();
+        return cell;
     }
 
-    // Your logic to retrieve data based on start and end dates
-    // Replace this with your actual data retrieval logic
-    private List<IssueLog> getData(String startDate, String endDate) {
-        // Replace issueLogRepository with your actual repository or service class
-        return issueLogRepository.findByDateBetween(startDate, endDate);
-    }
 }

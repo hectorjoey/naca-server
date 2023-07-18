@@ -5,6 +5,9 @@ import com.itextpdf.text.pdf.PdfDocument;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.opencsv.CSVWriter;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import fhi360.it.assetverify.dto.AssetDto;
 import fhi360.it.assetverify.exception.AlreadyExistsException;
 import fhi360.it.assetverify.exception.ResourceNotFoundException;
@@ -28,9 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -202,26 +203,26 @@ public class AssetController {
 //        }
 //    }
 
-    @GetMapping("asset-export")
-    public ResponseEntity<byte[]> exportToExcel(HttpServletResponse response) throws IOException {
-        List<Asset> assets = assetService.getAllAssets();
-
-        XSSFWorkbook workbook = assetService.createExcelFile(assets);
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        workbook.close();
-
-        byte[] excelContent = outputStream.toByteArray();
-
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=exported_models.xlsx");
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"exported_models.xlsx\"")
-                .body(excelContent);
-    }
+//    @GetMapping("asset-export")
+//    public ResponseEntity<byte[]> exportToExcel(HttpServletResponse response) throws IOException {
+//        List<Asset> assets = assetService.getAllAssets();
+//
+//        XSSFWorkbook workbook = assetService.createExcelFile(assets);
+//
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//        workbook.write(outputStream);
+//        workbook.close();
+//
+//        byte[] excelContent = outputStream.toByteArray();
+//
+//        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+//        response.setHeader("Content-Disposition", "attachment; filename=exported_models.xlsx");
+//
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"exported_models.xlsx\"")
+//                .body(excelContent);
+//    }
 
 
     @GetMapping("/export-to-pdf")
@@ -312,5 +313,58 @@ public class AssetController {
         cell.setPhrase(new Paragraph(content, font));
 
         return cell;
+    }
+
+
+
+    @GetMapping("/export-to-csv")
+    public ResponseEntity<byte[]> exportToCSV(HttpServletResponse response) {
+        try {
+            List<Asset> data = assetService.getAllAssets();
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            Writer writer = new OutputStreamWriter(outputStream);
+
+            // Create CSVWriter object
+            CSVWriter csvWriter = new CSVWriter(writer);
+
+            // Write CSV headers
+            String[] headers = {
+                    "Description", "Category", "Type", "Asset ID", "Serial Number", "Date Received",
+                    "Funder", "Model", "Purchase Price", "States", "Year of Purchase", "Implementer",
+                    "Implementation Period", "Location", "Custodian", "Condition", "Email Address",
+                    "Phone", "Status"
+            };
+            csvWriter.writeNext(headers);
+
+            // Write data rows
+            for (Asset obj : data) {
+                String[] row = {
+                        obj.getDescription(), obj.getCategory(), obj.getType(), obj.getAssetId(),
+                        obj.getSerialNumber(), obj.getDateReceived(), obj.getFunder(), obj.getModel(),
+                        obj.getPurchasePrice(), obj.getStates(), obj.getYearOfPurchase(),
+                        obj.getImplementer(), obj.getImplementationPeriod(), obj.getLocation(),
+                        obj.getCustodian(), obj.getCondition(), obj.getEmailAddress(),
+                        obj.getPhone(), obj.getStatus()
+                };
+                csvWriter.writeNext(row);
+            }
+
+            csvWriter.flush();
+            byte[] csvBytes = outputStream.toByteArray();
+
+            writer.flush();
+            writer.close();
+
+            HttpHeaders header = new HttpHeaders();
+            header.setContentType(MediaType.TEXT_PLAIN);
+            header.setContentDispositionFormData("attachment", "asset.csv");
+
+            // Return the byte array as the response
+            return new ResponseEntity<>(csvBytes, header, HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
