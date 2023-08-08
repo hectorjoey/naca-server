@@ -45,8 +45,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class AssetController {
-    //    private final DeleteAssetService deleteAssetService;
-//    private final AssetEmailsService assetEmailsService;
     private final AssetRepository assetRepository;
     private final AssetService assetService;
 
@@ -139,91 +137,6 @@ public class AssetController {
         response.put("deleted", Boolean.TRUE);
         return response;
     }
-
-//    @GetMapping("asset-search")
-//    public Page<Asset> search(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, @RequestParam("page") int page) {
-//        DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-//        LocalDate start = LocalDate.parse(startDate, inputFormat);
-//        LocalDate end = LocalDate.parse(endDate, inputFormat);
-//
-//        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-//        String formattedStartDate = start.format(desiredFormat);
-//        String formattedEndDate = end.format(desiredFormat);
-//
-//        PageRequest pageRequest = PageRequest.of(page, 100);
-//        return assetService.searchByDateReceived(formattedStartDate, formattedEndDate, pageRequest);
-//
-//    }
-
-
-//    @GetMapping("asset/exports")
-//    public void exportToCSV(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate, HttpServletResponse response) throws IOException {
-//
-//        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-//        LocalDate start = LocalDate.parse(startDate, df);
-//        LocalDate end = LocalDate.parse(endDate, df);
-//
-//        DateTimeFormatter desiredFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-//        String formattedStartDate = start.format(desiredFormat);
-//        String formattedEndDate = end.format(desiredFormat);
-//
-//        List<Asset> assetLogs = assetRepository.findByDateReceivedBetween(formattedStartDate, formattedEndDate);
-//
-//        // Create a StringBuilder to store the CSV content
-//        StringBuilder csvContent = new StringBuilder();
-//        csvContent.append("Description,Category, Type,Asset ID,Serial Number, Date Received,  Funder, Model, States, Location, Custodian, Condition, Email Address, Phone, Status  \n"); // Replace with actual column names
-//
-//        // Append each IssueLog entry as a CSV row
-//        for (Asset asset : assetLogs) {
-//            csvContent.append(asset.getDescription()).append(",");
-//            csvContent.append(asset.getCategory()).append(",");
-//            csvContent.append(asset.getType()).append(",");
-//            csvContent.append(asset.getAssetId()).append(",");
-//            csvContent.append(asset.getSerialNumber()).append(",");
-//            csvContent.append(asset.getDateReceived()).append(",");
-//            csvContent.append(asset.getFunder()).append(",");
-//            csvContent.append(asset.getModel()).append(",");
-//            csvContent.append(asset.getStates()).append(",");
-//            csvContent.append(asset.getLocation()).append(",");
-//            csvContent.append(asset.getCustodian()).append(",");
-//            csvContent.append(asset.getCondition()).append(",");
-//            csvContent.append(asset.getEmailAddress()).append(",");
-//            csvContent.append(asset.getPhone()).append(",");
-//            csvContent.append(asset.getStatus()).append("\n");
-//            // Append additional properties as needed
-//        }
-//
-//        // Set the response headers for CSV file download
-//        response.setContentType("text/csv");
-//        response.setHeader("Content-Disposition", "attachment; filename=export.csv");
-//
-//        // Write the CSV content to the response output stream
-//        try (PrintWriter writer = response.getWriter()) {
-//            writer.write(csvContent.toString());
-//        }
-//    }
-
-//    @GetMapping("asset-export")
-//    public ResponseEntity<byte[]> exportToExcel(HttpServletResponse response) throws IOException {
-//        List<Asset> assets = assetService.getAllAssets();
-//
-//        XSSFWorkbook workbook = assetService.createExcelFile(assets);
-//
-//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//        workbook.write(outputStream);
-//        workbook.close();
-//
-//        byte[] excelContent = outputStream.toByteArray();
-//
-//        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-//        response.setHeader("Content-Disposition", "attachment; filename=exported_models.xlsx");
-//
-//        return ResponseEntity.ok()
-//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"exported_models.xlsx\"")
-//                .body(excelContent);
-//    }
-
 
     @GetMapping("/export-to-pdf")
     public ResponseEntity<byte[]> exportToPDF() {
